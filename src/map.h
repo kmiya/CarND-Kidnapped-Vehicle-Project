@@ -9,6 +9,7 @@
 #define MAP_H_
 
 #include <vector>
+#include <unordered_map>
 
 class Map {
  public:  
@@ -19,6 +20,7 @@ class Map {
   };
 
   std::vector<single_landmark_s> landmark_list; // List of landmarks in the map
+  std::unordered_map<int, single_landmark_s> landmark_map;
 };
 
 #endif  // MAP_H_

@@ -9,7 +9,7 @@
 #ifndef HELPER_FUNCTIONS_H_
 #define HELPER_FUNCTIONS_H_
 
-#include <math.h>
+#include <cmath>
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -108,7 +108,7 @@ inline bool read_map_data(std::string filename, Map& map) {
     iss_map >> id_i;
 
     // Declare single_landmark
-    Map::single_landmark_s single_landmark_temp;
+    Map::single_landmark_s single_landmark_temp{};
 
     // Set values
     single_landmark_temp.id_i = id_i;
@@ -117,6 +117,7 @@ inline bool read_map_data(std::string filename, Map& map) {
 
     // Add to landmark list of map
     map.landmark_list.push_back(single_landmark_temp);
+    map.landmark_map.emplace(id_i, single_landmark_temp);
   }
   return true;
 }

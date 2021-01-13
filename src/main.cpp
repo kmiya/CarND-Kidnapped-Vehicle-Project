@@ -1,4 +1,4 @@
-#include <math.h>
+#include <cmath>
 #include <uWS/uWS.h>
 #include <iostream>
 #include <string>
@@ -13,10 +13,10 @@ using std::vector;
 // Checks if the SocketIO event has JSON data.
 // If there is data the JSON object in string format will be returned,
 // else the empty string "" will be returned.
-string hasData(string s) {
+string hasData(const string& s) {
   auto found_null = s.find("null");
-  auto b1 = s.find_first_of("[");
-  auto b2 = s.find_first_of("]");
+  auto b1 = s.find_first_of('[');
+  auto b2 = s.find_first_of(']');
   if (found_null != string::npos) {
     return "";
   } else if (b1 != string::npos && b2 != string::npos) {
@@ -33,9 +33,9 @@ int main() {
   double sensor_range = 50;  // Sensor range [m]
 
   // GPS measurement uncertainty [x [m], y [m], theta [rad]]
-  double sigma_pos [3] = {0.3, 0.3, 0.01};
+  double sigma_pos[3] = {0.3, 0.3, 0.01};
   // Landmark measurement uncertainty [x [m], y [m]]
-  double sigma_landmark [2] = {0.3, 0.3};
+  double sigma_landmark[2] = {0.3, 0.3};
 
   // Read map data
   Map map;
@@ -47,20 +47,20 @@ int main() {
   // Create particle filter
   ParticleFilter pf;
 
-  h.onMessage([&pf,&map,&delta_t,&sensor_range,&sigma_pos,&sigma_landmark]
-              (uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, 
-               uWS::OpCode opCode) {
+  h.onMessage([&pf, &map, &delta_t, &sensor_range, &sigma_pos, &sigma_landmark]
+                  (uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
+                   uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
     // The 2 signifies a websocket event
     if (length && length > 2 && data[0] == '4' && data[1] == '2') {
       auto s = hasData(string(data));
 
-      if (s != "") {
+      if (!s.empty()) {
         auto j = json::parse(s);
 
         string event = j[0].get<string>();
-        
+
         if (event == "telemetry") {
           // j[1] is the data JSON object
           if (!pf.initialized()) {
@@ -90,18 +90,18 @@ int main() {
           std::istringstream iss_x(sense_observations_x);
 
           std::copy(std::istream_iterator<float>(iss_x),
-          std::istream_iterator<float>(),
-          std::back_inserter(x_sense));
+                    std::istream_iterator<float>(),
+                    std::back_inserter(x_sense));
 
           vector<float> y_sense;
           std::istringstream iss_y(sense_observations_y);
 
           std::copy(std::istream_iterator<float>(iss_y),
-          std::istream_iterator<float>(),
-          std::back_inserter(y_sense));
+                    std::istream_iterator<float>(),
+                    std::back_inserter(y_sense));
 
-          for (int i = 0; i < x_sense.size(); ++i) {
-            LandmarkObs obs;
+          for (size_t i = 0; i < x_sense.size(); ++i) {
+            LandmarkObs obs{};
             obs.x = x_sense[i];
             obs.y = y_sense[i];
             noisy_observations.push_back(obs);
@@ -113,12 +113,12 @@ int main() {
 
           // Calculate and output the average weighted error of the particle 
           //   filter over all time steps so far.
-          vector<Particle> particles = pf.particles;
-          int num_particles = particles.size();
+          vector<Particle> particles = pf.particles_;
+          size_t num_particles = particles.size();
           double highest_weight = -1.0;
           Particle best_particle;
           double weight_sum = 0.0;
-          for (int i = 0; i < num_particles; ++i) {
+          for (size_t i = 0; i < num_particles; ++i) {
             if (particles[i].weight > highest_weight) {
               highest_weight = particles[i].weight;
               best_particle = particles[i];
@@ -128,7 +128,7 @@ int main() {
           }
 
           std::cout << "highest w " << highest_weight << std::endl;
-          std::cout << "average w " << weight_sum/num_particles << std::endl;
+          std::cout << "average w " << weight_sum / num_particles << std::endl;
 
           json msgJson;
           msgJson["best_particle_x"] = best_particle.x;
@@ -156,7 +156,7 @@ int main() {
     std::cout << "Connected!!!" << std::endl;
   });
 
-  h.onDisconnection([&h](uWS::WebSocket<uWS::SERVER> ws, int code, 
+  h.onDisconnection([&h](uWS::WebSocket<uWS::SERVER> ws, int code,
                          char *message, size_t length) {
     ws.close();
     std::cout << "Disconnected" << std::endl;
@@ -169,6 +169,6 @@ int main() {
     std::cerr << "Failed to listen to port" << std::endl;
     return -1;
   }
-  
+
   h.run();
 }
